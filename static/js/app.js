@@ -1,26 +1,16 @@
 document.addEventListener('DOMContentLoaded', () => {
     const noteForm = document.getElementById('noteForm');
-    const showNotesButton = document.getElementById('showNotesButton');
+    const showNotesLink = document.getElementById('showNotesLink');
 
     const fetchAndDisplayNotes = async () => {
         const response = await fetch('/notes');
         const notes = await response.json();
 
-        // Prepara i dati delle note per la visualizzazione
-        let notesHtml = '';
-        notes.forEach(note => {
-            notesHtml += `<div class="note">
-                            <h2>${note.title}</h2>
-                            <p>${note.content}</p>
-                            <small>Utente: ${note.user}</small>
-                          </div>`;
-        });
-
         // Salva le note nel localStorage per poterle recuperare in webnotes.html
         localStorage.setItem('notes', JSON.stringify(notes));
 
-        // Redireziona l'utente a webnotes.html
-        window.location.href = '/webnotes.html';
+        // Redireziona l'utente a webnotes.html in una nuova scheda del browser
+        window.open('/webnotes.html', '_blank');
     }
 
     noteForm.addEventListener('submit', async (e) => {
@@ -39,5 +29,6 @@ document.addEventListener('DOMContentLoaded', () => {
         noteForm.reset();
     });
 
-    showNotesButton.addEventListener('click', fetchAndDisplayNotes);
+    // Usa un link anziché un pulsante per reindirizzare
+    showNotesLink.addEventListener('click', fetchAndDisplayNotes);
 });

@@ -14,7 +14,8 @@
             <textarea id="content" placeholder="Content" required></textarea>
             <button type="submit">Add Note</button>
         </form>
-        <button id="showNotesButton">Show More Notes</button>
+        <!-- Usa un link anziché un pulsante per reindirizzare -->
+        <a id="showNotesLink" href="/webnotes.html" target="_blank">Show More Notes</a>
     </div>
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>

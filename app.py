@@ -1,40 +1,35 @@
 from flask import Flask, render_template, request, jsonify
-from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime
-import os
 
 app = Flask(__name__)
-app.config.from_object('config.Config')
-db = SQLAlchemy(app)
 
-# Import models after initializing db
-from models import Note
-
+# Route per la homepage
 @app.route('/')
 def index():
     return render_template('index.html')
 
+# Route per la pagina webnotes
+@app.route('/webnotes.html')
+def webnotes():
+    return render_template('webnotes.html')
+
+# Simulazione dei dati delle note
+notes = [
+    {'user': 'Simone', 'title': 'Nota 1', 'content': 'Contenuto della nota 1'},
+    {'user': 'Simone', 'title': 'Nota 2', 'content': 'Contenuto della nota 2'},
+    {'user': 'Simone', 'title': 'Nota 3', 'content': 'Contenuto della nota 3'},
+]
+
+# Route per ottenere le note
+@app.route('/notes')
+def get_notes():
+    return jsonify(notes)
+
+# Route per aggiungere una nota
 @app.route('/notes', methods=['POST'])
 def add_note():
     data = request.get_json()
-    new_note = Note(
-        title=data['title'],
-        content=data['content']
-    )
-    db.session.add(new_note)
-    db.session.commit()
-    return jsonify({"message": "Note added successfully!"})
-
-@app.route('/notes', methods=['GET'])
-def get_notes():
-    notes = Note.query.all()
-    output = []
-    for note in notes:
-        note_data = {'id': note.id, 'title': note.title, 'content': note.content, 'created_at': note.created_at, 'updated_at': note.updated_at}
-        output.append(note_data)
-    return jsonify(output)
+    notes.append(data)
+    return jsonify({'message': 'Nota aggiunta'})
 
 if __name__ == '__main__':
-    if not os.path.exists('notes.db'):
-        db.create_all()
     app.run(debug=True)

@@ -4,12 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .note {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+    </style>
     <title>Web Notes</title>
 </head>
 <body>
     <div id="app">
         <h1>Web Notes</h1>
-        <div id="notes"></div>
+        <div class="grid-container" id="notes"></div>
     </div>
     <script>
         // Recupera le note dal localStorage
