@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <title>Note App</title>
+</head>
+<body>
+    <div id="app">
+        <h1>Note App</h1>
+        <form id="noteForm">
+            <input type="text" id="title" placeholder="Title" required>
+            <textarea id="content" placeholder="Content" required></textarea>
+            <button type="submit">Add Note</button>
+        </form>
+        <button id="showNotesButton">Show More Notes</button>
+    </div>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
