@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.5.0/font/bootstrap-icons.min.css">
+    <title>Profilo Utente</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+        
+        .container {
+            width: 80%;
+            margin: 60px auto;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            border-radius: 5px;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+
+        .profile-info {
+            margin: 20px 0;
+        }
+
+        .profile-info label {
+            font-weight: bold;
+        }
+
+        .profile-info p {
+            margin: 5px 0;
+        }
+
+        .edit-button, .delete-button {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .edit-button button, .delete-button button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 0 10px;
+        }
+
+        .edit-button button:hover, .delete-button button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Profilo Utente</h1>
+        <div class="profile-info">
+            <label for="username">Nome Utente:</label>
+            <p id="username">{{ profile.username }}</p>
+
+            <label for="email">Email:</label>
+            <p id="email">{{ profile.email }}</p>
+
+            <label for="joined">Data di Registrazione:</label>
+            <p id="joined">{{ profile.joined }}</p>
+        </div>
+        <div class="edit-button">
+            <button onclick="editProfile()">Modifica Profilo</button>
+        </div>
+        <div class="delete-button">
+            <button onclick="deleteProfile()">Elimina Profilo</button>
+        </div>
+    </div>
+
+    <script>
+        async function editProfile() {
+            const newUsername = prompt("Inserisci il nuovo nome utente:", document.getElementById('username').textContent);
+            const newEmail = prompt("Inserisci la nuova email:", document.getElementById('email').textContent);
+
+            if (newUsername && newEmail) {
+                const response = await fetch('/update-profile', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email: newEmail, username: newUsername }),
+                });
+
+                if (response.ok) {
+                    alert("Profilo aggiornato con successo.");
+                    location.reload();
+                } else {
+                    alert("Errore durante l'aggiornamento del profilo.");
+                }
+            } else {
+                alert("Modifica annullata.");
+            }
+        }
+
+        async function deleteProfile() {
+            const confirmation = confirm("Sei sicuro di voler eliminare il tuo profilo? Questa azione è irreversibile.");
+            if (confirmation) {
+                const response = await fetch('/delete-profile', {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                if (response.ok) {
+                    alert("Profilo eliminato con successo.");
+                    window.location.href = '/';  // Reindirizza alla homepage
+                } else {
+                    alert("Errore durante l'eliminazione del profilo.");
+                }
+            }
+        }
+    </script>
+</body>
+</html>

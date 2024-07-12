@@ -4,41 +4,293 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.5.0/font/bootstrap-icons.min.css">
+    <title>Web Notes</title>
     <style>
-        .grid-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+            color: #333; /* Default text color */
         }
-        .note {
-            border: 1px solid #ccc;
+
+        /* Dark Mode Styles */
+        body.dark-mode {
+            background-color: #121212; /* Dark background */
+            color: #e0e0e0; /* Light text color */
+        }
+
+        h1 {
+            color: #333;
+            text-align: left;
+            margin: 20px;
+            position: absolute;
+            top: 0;
+            left: 20px;
+        }
+
+        body.dark-mode h1 {
+            color: #e0e0e0; /* Light color for heading in dark mode */
+        }
+
+        #notesApp {
+            width: 80%;
+            margin: 60px auto 20px auto;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            padding: 20px;
+        }
+
+        body.dark-mode #notesApp {
+            background-color: #1e1e1e; /* Dark background for notes app */
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.1); /* Softer shadow */
+        }
+
+        #notes {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 400px;
+            overflow-y: auto;
             padding: 10px;
-            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        body.dark-mode #notes {
+            border-color: #444; /* Darker border in dark mode */
+        }
+
+        #notes div {
+            padding: 10px;
+            background: #fafafa;
+            border-radius: 5px;
+        }
+
+        body.dark-mode #notes div {
+            background: #222; /* Dark background for notes */
+        }
+
+        #notes h2 {
+            margin: 0;
+            color: #555;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+        }
+
+        body.dark-mode #notes h2 {
+            color: #e0e0e0; /* Light color for heading in dark mode */
+        }
+
+        .username {
+            color: black;
+            font-weight: bold;
+            font-size: 14px;
+            margin-right: 5px;
+        }
+
+        body.dark-mode .username {
+            color: #e0e0e0; /* Light color for username in dark mode */
+        }
+
+        .date {
+            font-size: 14px;
+        }
+
+        .tooltip {
+            display: none;
+            position: absolute;
+            background-color: #333;
+            color: #fff;
+            padding: 5px;
+            border-radius: 5px;
+            font-size: 12px;
+            top: 100%;
+            left: 0;
+            z-index: 10;
+        }
+
+        body.dark-mode .tooltip {
+            background-color: #444; /* Darker tooltip background */
+        }
+
+        #notes h2:hover .tooltip {
+            display: block;
+        }
+
+        .no-notes {
+            text-align: center;
+            color: #999;
+            font-size: 18px;
+            margin: 20px 0;
+        }
+
+        body.dark-mode .no-notes {
+            color: #ccc; /* Lighter color for no notes message in dark mode */
+        }
+
+        .action-icons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .action-icons i {
+            cursor: pointer;
+            font-size: 20px;
+            color: #555;
+        }
+
+        body.dark-mode .action-icons i {
+            color: #e0e0e0; /* Light color for action icons in dark mode */
+        }
+
+        .action-icons i:hover {
+            color: #000; /* Color on hover */
+        }
+
+        body.dark-mode .action-icons i:hover {
+            color: #bbb; /* Lighter color on hover in dark mode */
         }
     </style>
-    <title>Web Notes</title>
 </head>
 <body>
-    <div id="app">
-        <h1>Web Notes</h1>
-        <div class="grid-container" id="notes"></div>
+    <h1><a href='/'>Web Notes</a></h1>
+    <div id="notesApp">
+        <div id="notes"></div>
+        <div id="no-notes" class="no-notes" style="display: none;">Non ci sono note da mostrare.</div>
     </div>
     <script>
-        // Recupera le note dal localStorage
-        const notes = JSON.parse(localStorage.getItem('notes'));
-        const notesDiv = document.getElementById('notes');
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check for dark mode preference
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.body.classList.add('dark-mode');
+            }
 
-        // Visualizza le note recuperate
-        if (notes && notes.length > 0) {
-            notes.forEach(note => {
-                const noteElement = document.createElement('div');
-                noteElement.classList.add('note');
-                noteElement.innerHTML = `<h2>${note.title}</h2><p>${note.content}</p><small>Utente: ${note.user}</small>`;
-                notesDiv.appendChild(noteElement);
-            });
-        } else {
-            notesDiv.innerHTML = '<p>Nessuna nota salvata.</p>';
+            const notesContainer = document.getElementById('notes');
+            const noNotesMessage = document.getElementById('no-notes');
+
+            const fetchAndDisplayNotes = async () => {
+                const response = await fetch('/notes');
+                const notes = await response.json();
+                displayNotes(notes);
+            };
+
+            const displayNotes = (notes) => {
+                notesContainer.innerHTML = '';
+                if (notes.length === 0) {
+                    noNotesMessage.style.display = 'block';
+                } else {
+                    noNotesMessage.style.display = 'none';
+                    const today = new Date().toLocaleDateString();
+                    notes.sort((a, b) => new Date(b.date) - new Date(a.date)).forEach((note) => {
+                        const date = new Date(note.date);
+                        const noteDate = date.toLocaleDateString();
+                        let formattedDate;
+
+                        if (noteDate === today) {
+                            formattedDate = `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}:${date.getSeconds().toString().padStart(2, '0')}`;
+                        } else {
+                            formattedDate = `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}:${date.getSeconds().toString().padStart(2, '0')}`;
+                        }
+                        
+                        const noteElement = document.createElement('div');
+                        noteElement.innerHTML = `
+                            <h2 onclick="toggleContent(this)">
+                                ${note.title}
+                                <span>
+                                    <span class="username">${note.user}</span>
+                                    <span class="date">· ${formattedDate}</span>
+                                </span>
+                                <span class="tooltip">Clicca qui per vederne il contenuto</span>
+                            </h2>
+                            <p style="display: none;">${note.content}</p>
+                            <div class="action-icons">
+                                <i class="bi bi-pencil" onclick="editNote(${note.id})" title="Modifica"></i>
+                                <i class="bi bi-trash" onclick="deleteNote(${note.id})" title="Elimina"></i>
+                            </div>
+                        `;
+                        notesContainer.appendChild(noteElement);
+                    });
+                }
+            };
+
+            fetchAndDisplayNotes();
+        }); 
+            
+        function toggleContent(element) {
+            const content = element.nextElementSibling;
+            const tooltip = element.querySelector('.tooltip');
+            
+            if (content.style.display === 'none' || content.style.display === '') {
+                content.style.display = 'block';
+                tooltip.textContent = 'Clicca qui per nascondere il contenuto';
+            } else {
+                content.style.display = 'none';
+                tooltip.textContent = 'Clicca qui per vederne il contenuto';
+            }
         }
+
+        async function editNote(id) {
+            const newContent = prompt("Modifica il contenuto della nota:");
+            if (newContent) {
+                const response = await fetch(`/notes/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ content: newContent }),
+                });
+
+                if (response.ok) {
+                    alert("Nota modificata con successo.");
+                    location.reload();
+                } else {
+                    alert("Errore durante la modifica della nota.");
+                }
+            }
+        }
+
+        async function deleteNote(id) {
+            const confirmDelete = confirm("Sei sicuro di voler eliminare questa nota?");
+            if (confirmDelete) {
+                const response = await fetch(`/notes/${id}`, {
+                    method: 'DELETE',
+                });
+
+                if (response.ok) {
+                    alert("Nota eliminata con successo.");
+                    location.reload();
+                } else {
+                    alert("Errore durante l'eliminazione della nota.");
+                }
+            }
+        }
+
+        async function banUser(username) {
+            const confirmBan = confirm(`Sei sicuro di voler bannare l'utente ${username}?`);
+            if (confirmBan) {
+                const response = await fetch('/ban-user', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username: username }),
+                });
+        
+                if (response.ok) {
+                    alert(`Utente ${username} bannato con successo.`);
+                    location.reload();
+                } else {
+                    alert("Errore durante il ban dell'utente.");
+                }
+            }
+        }        
     </script>
 </body>
 </html>

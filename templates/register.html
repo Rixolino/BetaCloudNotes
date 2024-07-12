@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrazione</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #333; /* Default text color */
+        }
+
+        body.dark-mode {
+            background-color: #121212; /* Dark background */
+            color: #e0e0e0; /* Light text color */
+        }
+
+        #registerContainer {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            text-align: center;
+        }
+
+        body.dark-mode #registerContainer {
+            background-color: #1e1e1e; /* Dark background for container */
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+        }
+
+        h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        body.dark-mode h2 {
+            color: #e0e0e0; /* Light heading color in dark mode */
+        }
+
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        body.dark-mode input[type="text"], body.dark-mode input[type="password"] {
+            background-color: #333; /* Dark background for inputs */
+            color: #e0e0e0; /* Light text color for inputs */
+            border-color: #444; /* Darker border for inputs */
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #333;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #555;
+        }
+
+        body.dark-mode button {
+            background-color: #555; /* Lighter button in dark mode */
+        }
+
+        .error {
+            color: red;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="registerContainer">
+        <h2>Registrazione</h2>
+        <form id="registerForm" method="POST" action="/register">
+            <div id="errorMessage" class="error"></div>
+            <input type="text" id="username" name="username" placeholder="Username" required>
+            <input type="password" id="password" name="password" placeholder="Password" required>
+            <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Conferma Password" required>
+            <button type="submit">Registrati</button>
+        </form>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.body.classList.add('dark-mode');
+            }
+
+            document.getElementById('registerForm').addEventListener('submit', async function(event) {
+                event.preventDefault();
+                const username = document.getElementById('username').value;
+                const password = document.getElementById('password').value;
+                const confirmPassword = document.getElementById('confirmPassword').value;
+
+                if (username === '' || password === '' || confirmPassword === '') {
+                    document.getElementById('errorMessage').textContent = 'Please fill in all fields.';
+                    return;
+                }
+
+                if (password !== confirmPassword) {
+                    document.getElementById('errorMessage').textContent = 'Passwords do not match.';
+                    return;
+                }
+
+                const response = await fetch('/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: `username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}&confirmPassword=${encodeURIComponent(confirmPassword)}`
+                });
+
+                if (response.ok) {
+                    alert('Registrazione effettuata');
+                    window.location.href = '/';
+                } else {
+                    const errorData = await response.json();
+                    document.getElementById('errorMessage').textContent = errorData.message;
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -5,18 +5,154 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <title>Note App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-size: cover;
+            background-position: center;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+
+        /* Light Mode Styles */
+        #app {
+            width: 50%;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 1);
+        }
+        
+        nav {
+            display: flex;
+            justify-content: flex-end;
+            padding: 10px;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: #333;
+            font-weight: bold;
+            margin-left: 20px;
+            transition: color 0.3s;
+        }
+
+        nav a:hover {
+            color: #555; /* Change color on hover */
+        }
+
+        /* Dark Mode Styles */
+        body.dark-mode {
+            background-color: #121212;
+            color: #e0e0e0;
+        }
+
+        body.dark-mode #app {
+            background-color: #1e1e1e;
+            box-shadow: 0 4px 20px rgba(255, 255, 255, 0.2);
+        }
+
+        body.dark-mode nav a {
+            color: #e0e0e0;
+        }
+
+        body.dark-mode nav a:hover {
+            color: #bbb; /* Lighter color on hover in dark mode */
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        input, textarea, button {
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        button {
+            background-color: #333;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #555;
+        }
+
+        .registration-message {
+            color: red;
+            margin-top: 10px;
+        }
+    </style>
 </head>
 <body>
     <div id="app">
+        <nav>
+            {% if session.username %}
+                <span><a href='/profile'>Benvenuto, {{ session.username }}</a>!</span>
+                <a href="/logout">Logout</a>
+            {% else %}
+                <a href="/login">Login</a>
+                <a href="/register">Register</a>
+            {% endif %}
+        </nav>
         <h1>Note App</h1>
         <form id="noteForm">
-            <input type="text" id="title" placeholder="Title" required>
-            <textarea id="content" placeholder="Content" required></textarea>
-            <button type="submit">Add Note</button>
+            {% if session.username %}
+                <input type="text" id="title" placeholder="Title" required>
+                <textarea id="content" placeholder="Content" required></textarea>
+                <button type="submit">Add Note</button>
+            {% else %}
+                <div class="registration-message">È necessario registrarsi o, se hai già un account, effettuare il login.</div>
+                <input type="text" id="title" placeholder="Title" required disabled>
+                <textarea id="content" placeholder="Content" required disabled></textarea>
+                <button type="submit" disabled>Add Note</button>
+            {% endif %}
         </form>
-        <!-- Usa un link anziché un pulsante per reindirizzare -->
-        <a id="showNotesLink" href="/webnotes.html" target="_blank">Show More Notes</a>
+        <a id="showNotesLink" href="/webnotes" target="_blank">Show more notes posted by other users</a>
+        <div id="notesContainer"></div>
     </div>
-    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check for dark mode preference
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.body.classList.add('dark-mode');
+            }
+
+            const noteForm = document.getElementById('noteForm');
+            const showNotesLink = document.getElementById('showNotesLink');
+
+            const fetchAndDisplayNotes = async () => {
+                const response = await fetch('/notes');
+                const notes = await response.json();
+                localStorage.setItem('notes', JSON.stringify(notes));
+            }
+
+            noteForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const title = document.getElementById('title').value;
+                const content = document.getElementById('content').value;
+
+                const currentDateTime = new Date();
+                const formattedDateTime = `${currentDateTime.getDate().toString().padStart(2, '0')}/${(currentDateTime.getMonth() + 1).toString().padStart(2, '0')}/${currentDateTime.getFullYear()} ${currentDateTime.getHours().toString().padStart(2, '0')}:${currentDateTime.getMinutes().toString().padStart(2, '0')}:${currentDateTime.getSeconds().toString().padStart(2, '0')}`;
+
+                await fetch('/notes', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ title, content, date: formattedDateTime })
+                });
+
+                noteForm.reset();
+            });
+
+            showNotesLink.addEventListener('click', fetchAndDisplayNotes);
+        });
+    </script>
 </body>
 </html>
