@@ -1,4 +1,4 @@
-name: Run Python app
+name: Run Python app and build
 
 on: [push]
 
@@ -7,17 +7,32 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
         python-version: '3.8'
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        pip install waitress
-        pip install flask_socketio
-    - name: Run app
+        pip install waitress flask_socketio
+
+    - name: Run tests
       run: |
-        python app.py || { echo "App failed"; exit 1; }
+        # Esegui eventuali test qui, se ne hai
+        python -m unittest discover
+
+    - name: Build the site (static files)
+      run: |
+        # Aggiungi comandi per la costruzione del sito statico, se necessario
+        echo "Building static site"
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: site
+        path: ./  # Modifica questo percorso se necessario
